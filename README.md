@@ -1,7 +1,7 @@
 # Laravel using PostgreSQL in Docker
 
 <p align="center">
-    <img src="./docker/images/laravel+docker.png" alt="docker+laravel">
+    <img src="./docker/image/laravel+docker.png" alt="docker+laravel">
 </p>
 
 ## Introduction
@@ -17,57 +17,36 @@ Build a simple laravel application development environment with docker compose.
 ## Installation
 
 1. Git clone & move to working directory
-2. Settings your credentials docker compose using [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/)
-
-- Create credentials for DB Name
-
-    ```bash
-    $ echo "<your_db_name>" | docker secret create app_db_name -
-    ```
-- Create credentials for DB User
-
-    ```bash
-    $ echo "<your_db_user>" | docker secret create app_db_user -
-    ```
-- Create credentials for DB Password
-
-    ```bash
-    $ echo "<your_db_password>" | docker secret create app_db_password -
-    ```
-### *Optional credentials*
-If you want to use pgAdmin management add this credentials:
-
-- Create credentials for pgAdmin Password
-
-    ```bash
-    $ echo "<your_pgadmin_password>" | docker secret create app_pgadmin_password -
-    ```
-
-**Uncomment** in top level secret for pgAdmin in file docker-compose.yml to:
-```bash
-  app_pgadmin_password:
-    external: true
-```
-
-1. Execute the following command for create application
+2. Settings your credentials, copy `.env.example` to `.env`
+3. Execute the following command for create application
 
 ```bash
 $ make create-project
 ```
 
-4. set src/.env variable :
+4. Next, set environment DB for app laravel in  `src/.env` variable :
 ```
 DB_CONNECTION=pgsql
 DB_HOST=postgres
 DB_PORT=5432
-DB_DATABASE=<your_database>
-DB_USERNAME=<your_username>
-DB_PASSWORD=<your_password>
+DB_DATABASE=<your_db_name>      // same in root .env variable POSTGRES_DB
+DB_USERNAME=<your_db_user>      // same in root .env variable POSTGRES_USER
+DB_PASSWORD=<your_db_password>  // same in root .env variable POSTGRES_PASSWORD
 ```
 
 5. show application in [http://localhost:85](http://localhost:85)
-6. show adminer in [http://localhost:8080](http://localhost:8080)
-7. list execute command in [Makefile](Makefile).
+
+<img src="./docker/image/app.png" alt="app+laravel">
+
+1. show adminer in [http://localhost:8080](http://localhost:8080)
+
+<img src="./docker/image/adminer.png" alt="adminer">
+
+7. show pgadmin in [http://localhost:5050](http://localhost:5050)
+
+<img src="./docker/image/pgadmin.png" alt="pgadmin">
+
+8. list execute command in [Makefile](Makefile).
 
 ## Container details :
 - ``app`` use image:
@@ -80,6 +59,7 @@ DB_PASSWORD=<your_password>
   - [postgres](https://hub.docker.com/_/postgres):15
 - ``adminer`` use image:
   - [adminer](https://hub.docker.com/_/adminer):latest
+  
 *Optional*
 - ``pgadmin`` use image:
   - [pgadmin](https://hub.docker.com/_/pgadmin):latest
