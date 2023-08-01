@@ -1,0 +1,9 @@
+# Editor
+.vscode
+
+# Container file
+/docker/postgres/data/*
+!/docker/postgres/data/.gitkeep
+
+# Working directory
+src/*

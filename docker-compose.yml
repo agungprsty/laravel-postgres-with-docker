@@ -1,0 +1,88 @@
+version: "3.9"
+
+networks:
+  aselole:
+    name: aselole
+
+services:
+  app:
+    container_name: aselole-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - postgres
+    networks:
+      - aselole
+
+  postgres:
+    container_name: aselole-db
+    image: postgres:15
+    restart: always
+    volumes:
+      - ./docker/postgres/data:/var/lib/postgres/data
+    environment:
+      - POSTGRES_DB_FILE=/run/secrets/app_db_name
+      - POSTGRES_USER_FILE=/run/secrets/app_db_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/app_db_password
+    secrets:
+      - app_db_name
+      - app_db_user
+      - app_db_password
+    ports:
+      - "5432:5432"
+    networks:
+      - aselole
+
+  web:
+    container_name: aselole-web
+    image: nginx:stable-alpine
+    restart: always
+    ports:
+      - "81:80"
+      - "5173:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - aselole
+
+  # Database management with pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: aselole-pgAdmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=agung@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/app_pgadmin_password
+    secrets:
+      - app_pgadmin_password
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - aselole
+
+  # Database management with Adminer
+  adminer:
+    container_name: aselole-adminer
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - aselole
+
+secrets:
+  app_db_name:
+    external: true
+  app_db_user:
+    external: true
+  app_db_password:
+    external: true
+  app_pgadmin_password:
+    external: true
