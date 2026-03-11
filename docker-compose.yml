@@ -1,12 +1,6 @@
-version: "3.9"
-
-networks:
-  aselole:
-    name: aselole
-
 services:
   app:
-    container_name: aselole-app
+    container_name: laravel-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -15,10 +9,10 @@ services:
     depends_on:
       - postgres
     networks:
-      - aselole
+      - laravel-super-apps
 
   postgres:
-    container_name: aselole-db
+    container_name: laravel-db
     image: postgres:15
     restart: always
     volumes:
@@ -30,24 +24,25 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - aselole
+      - laravel-super-apps
 
   web:
-    container_name: aselole-web
+    container_name: laravel-web
     image: nginx:stable-alpine
     restart: always
     ports:
-      - "85:80"
+      - "8000:80" # Laravel artisan serve
+      - "5173:80" # Vite HMR
     volumes:
       - ./src:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
-      - aselole
+      - laravel-super-apps
 
   # Database management with pgAdmin
   pgadmin:
     image: dpage/pgadmin4
-    container_name: aselole-pgAdmin
+    container_name: laravel-pgAdmin
     environment:
       - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
@@ -56,16 +51,20 @@ services:
     depends_on:
       - postgres
     networks:
-      - aselole
+      - laravel-super-apps
 
   # Database management with Adminer
   adminer:
-    container_name: aselole-adminer
+    container_name: laravel-adminer
     image: adminer
     restart: always
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       - postgres
     networks:
-      - aselole
+      - laravel-super-apps
+
+networks:
+  laravel-super-apps:
+    driver: bridge

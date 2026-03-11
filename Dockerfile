@@ -1,70 +1,71 @@
-# PHP-FPM is a FastCGI implementation for PHP.
-# Read more here: https://hub.docker.com/_/php
-FROM php:8.2-fpm
-
-
-RUN apt-get update
-
-# Install useful tools
-RUN apt-get -y install apt-utils nano wget dialog vim
-
-# Install system dependencies
-RUN apt-get -y install --fix-missing \
-    apt-utils \
-    build-essential \
-    git \
-    curl \
-    libcurl4 \
-    libcurl4-openssl-dev \
-    zlib1g-dev \
-    libzip-dev \
-    zip \
-    libbz2-dev \
-    locales \
-    libmcrypt-dev \
-    libicu-dev \
-    libonig-dev \
-    libxml2-dev
-
-RUN docker-php-ext-install \
-    exif \
-    pcntl \
-    bcmath \
-    ctype \
-    curl \
-    pcntl \
-    zip 
-
-# Install Postgre PDO
-RUN apt-get install -y libpq-dev \
-    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-    && docker-php-ext-install pdo pdo_pgsql pgsql
-
-# Install NPM
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-RUN apt-get install -y nodejs
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install Composer
-COPY --from=composer:2.3 /usr/bin/composer /usr/bin/composer
+# Step 1: Build & Dependencies
+FROM php:8.4-fpm-alpine AS builder
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Install build dependencies for PHP extensions
+RUN apk add --no-cache \
+    $PHPIZE_DEPS \
+    libpq-dev \
+    libzip-dev \
+    zip \
+    libpng-dev \
+    libxml2-dev \
+    icu-dev \
+    oniguruma-dev \
+    curl-dev
 
-# Copy existing application directory contents
-COPY ./src /var/www/html
+# Install & Configure PHP extensions
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install -j$(nproc) \
+    exif \
+    pcntl \
+    bcmath \
+    ctype \
+    zip \
+    pdo \
+    pdo_pgsql \
+    pgsql \
+    intl \
+    opcache
 
-# Copy existing application directory permissions
+# Install Composer from the official image
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# ---------------------------------------------------------
+
+# Step 2: Runtime (Final Image)
+FROM php:8.4-fpm-alpine
+
+WORKDIR /var/www/html
+
+# Install only the required runtime libraries (No build tools)
+RUN apk add --no-cache \
+    libpq \
+    libzip \
+    libpng \
+    libxml2 \
+    icu-libs \
+    oniguruma \
+    nodejs \
+    npm \
+    bash
+
+# Copy the compiled PHP extension from Step builder
+COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+COPY --from=builder /usr/bin/composer /usr/bin/composer
+
+# Create user non-root
+RUN addgroup -g 1000 www && adduser -u 1000 -G www -D www
+
+# Copy app and set permission
 COPY --chown=www:www ./src /var/www/html
 
-# Change current user to www
+# Use user non-root
 USER www
 
-# Set port for application
-EXPOSE 8000
+EXPOSE 9000
+
+CMD ["php-fpm"]

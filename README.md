@@ -1,4 +1,4 @@
-# Laravel using PostgreSQL in Docker
+# Laravel with PostgreSQL (Dockerized)
 
 <p align="center">
     <img src="./docker/image/laravel+docker.png" alt="docker+laravel">
@@ -6,12 +6,13 @@
 
 ## Introduction
 
-Build a simple laravel application development environment with docker compose.
+A lightweight and high-performance Laravel development environment using PHP 8.4-FPM (Alpine), PostgreSQL, and Nginx. This setup utilizes a multi-stage Docker build for a smaller, cleaner, and more efficient container image.
 
 
 ## Requirement
 
-- Docker ^19.*
+- Docker Engine
+- Docker Compose
 
 
 ## Installation
@@ -48,18 +49,32 @@ DB_PASSWORD=<your_db_password>  // same in root .env variable POSTGRES_PASSWORD
 
 8. list execute command in [Makefile](Makefile).
 
-## Container details :
-- ``app`` use image:
-  - [php](https://hub.docker.com/_/php):8.2-fpm
-  - [composer](https://hub.docker.com/_/composer):2.3
-  - [npm](https://deb.nodesource.com/setup_lts.x):latest
-- ``web`` use image:
-  - [nginx](https://hub.docker.com/_/nginx):stable-alpine
-- ``db`` use image:
-  - [postgres](https://hub.docker.com/_/postgres):15
-- ``adminer`` use image:
-  - [adminer](https://hub.docker.com/_/adminer):latest
-  
-*Optional*
-- ``pgadmin`` use image:
-  - [pgadmin](https://hub.docker.com/_/pgadmin):latest
+## Services & Ports
+1. Laravel App: http://localhost:8000
+2. Vite (HMR): http://localhost:5173
+3. PostgreSQL: localhost:5432
+4. Adminer: http://localhost:8080
+5. PgAdmin: http://localhost:5050
+
+## Container Architecture
+1. App: PHP 8.4-FPM Alpine (Multi-stage build).
+2. Web: Nginx Alpine.
+3. DB: PostgreSQL 15.
+4. Adminer/PgAdmin: Database management tools.
+
+-------------
+
+## Contributing
+Contributions are welcome! Please follow these steps:
+
+1. Fork this repository.
+2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes.
+4. Push to the branch.
+5. Open a Pull Request.
+
+## Issues
+If you encounter any bugs or have questions regarding the setup:
+
+1. Please check the existing issues first.
+2. If you don't find a solution, feel free to [open a new issue](https://github.com/agungprsty/laravel-postgres-with-docker/issues). Please include your docker-compose.yml configuration and the error logs to help us debug faster.
